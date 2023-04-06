@@ -16,10 +16,9 @@
 #include "cmdline.hpp"
 #include "index.hpp"
 #include "pc.hpp"
-#include "aln.hpp"
+// #include "aln.hpp"
 #include "logger.hpp"
 #include "timer.hpp"
-#include "readlen.hpp"
 #include "version.hpp"
 
 static Logger& logger = Logger::get();
@@ -51,7 +50,7 @@ void warn_if_no_optimizations() {
     }
 }
 
-void log_parameters(const IndexParameters& index_parameters, const mapping_params& map_param, const alignment_params& aln_params) {
+void log_parameters(const IndexParameters& index_parameters, const mapping_params& map_param) {
     logger.debug() << "Using" << std::endl
         << "k: " << index_parameters.k << std::endl
         << "s: " << index_parameters.s << std::endl
@@ -61,12 +60,7 @@ void log_parameters(const IndexParameters& index_parameters, const mapping_param
         << "Maximum seed length: " << index_parameters.max_dist + index_parameters.k << std::endl
         << "R: " << map_param.R << std::endl
         << "Expected [w_min, w_max] in #syncmers: [" << index_parameters.w_min << ", " << index_parameters.w_max << "]" << std::endl
-        << "Expected [w_min, w_max] in #nucleotides: [" << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_min << ", " << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_max << "]" << std::endl
-        << "A: " << aln_params.match << std::endl
-        << "B: " << aln_params.mismatch << std::endl
-        << "O: " << aln_params.gap_open << std::endl
-        << "E: " << aln_params.gap_extend << std::endl
-        << "end bonus: " << aln_params.end_bonus << '\n';
+        << "Expected [w_min, w_max] in #nucleotides: [" << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_min << ", " << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_max << "]" << std::endl;
 }
 
 bool avx2_enabled() {
@@ -78,16 +72,7 @@ bool avx2_enabled() {
 }
 
 InputBuffer get_input_buffer(const CommandLineOptions& opt) {
-    if (opt.is_SE) {
-        return InputBuffer(opt.reads_filename1, "", opt.chunk_size, false);
-    } else if (opt.is_interleaved) {
-        if (opt.reads_filename2 != "") {
-            throw BadParameter("Cannot specify both --interleaved and specify two read files");
-        }
-        return InputBuffer(opt.reads_filename1, "", opt.chunk_size, true);
-    } else {
-        return InputBuffer(opt.reads_filename1, opt.reads_filename2, opt.chunk_size, false);
-    }
+        return InputBuffer(opt.reads_filename1, opt.chunk_size);
 }
 
 void show_progress_until_done(std::vector<int>& worker_done, std::vector<AlignmentStatistics>& stats) {
@@ -142,10 +127,6 @@ int run_strobealign(int argc, char **argv) {
     }
 
     InputBuffer input_buffer = get_input_buffer(opt);
-    if (!opt.r_set && !opt.reads_filename1.empty()) {
-        opt.r = estimate_read_length(input_buffer);
-        logger.info() << "Estimated read length: " << opt.r << " bp\n";
-    }
     input_buffer.rewind_reset();
     IndexParameters index_parameters = IndexParameters::from_read_length(
         opt.r,
@@ -157,12 +138,12 @@ int run_strobealign(int argc, char **argv) {
         opt.max_seed_len_set ? opt.max_seed_len : IndexParameters::DEFAULT
     );
     logger.debug() << index_parameters << '\n';
-    alignment_params aln_params;
-    aln_params.match = opt.A;
-    aln_params.mismatch = opt.B;
-    aln_params.gap_open = opt.O;
-    aln_params.gap_extend = opt.E;
-    aln_params.end_bonus = opt.end_bonus;
+//    alignment_params aln_params;
+//    aln_params.match = opt.A;
+//    aln_params.mismatch = opt.B;
+//    aln_params.gap_open = opt.O;
+//    aln_params.gap_extend = opt.E;
+//    aln_params.end_bonus = opt.end_bonus;
 
     mapping_params map_param;
     map_param.r = opt.r;
@@ -173,7 +154,7 @@ int run_strobealign(int argc, char **argv) {
     map_param.is_sam_out = opt.is_sam_out;
     map_param.output_unmapped = opt.output_unmapped;
 
-    log_parameters(index_parameters, map_param, aln_params);
+    log_parameters(index_parameters, map_param);
     logger.debug() << "Threads: " << opt.n_threads << std::endl;
 
 //    assert(k <= (w/2)*w_min && "k should be smaller than (w/2)*w_min to avoid creating short strobemers");
@@ -262,10 +243,6 @@ int run_strobealign(int argc, char **argv) {
 
     std::ostream out(buf);
 
-    if (map_param.is_sam_out) {
-        out << sam_header(references, opt.read_group_id, opt.read_group_fields);
-    }
-
     std::vector<AlignmentStatistics> log_stats_vec(opt.n_threads);
 
     logger.info() << "Running in " << (opt.is_SE ? "single-end" : "paired-end") << " mode" << std::endl;
@@ -276,7 +253,7 @@ int run_strobealign(int argc, char **argv) {
     std::vector<int> worker_done(opt.n_threads);  // each thread sets its entry to 1 when it’s done
     for (int i = 0; i < opt.n_threads; ++i) {
         std::thread consumer(perform_task, std::ref(input_buffer), std::ref(output_buffer),
-            std::ref(log_stats_vec[i]), std::ref(worker_done[i]), std::ref(aln_params),
+            std::ref(log_stats_vec[i]), std::ref(worker_done[i]),
             std::ref(map_param), std::ref(index_parameters), std::ref(references),
             std::ref(index), std::ref(opt.read_group_id));
         workers.push_back(std::move(consumer));

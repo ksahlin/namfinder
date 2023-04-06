@@ -22,11 +22,9 @@ class InputBuffer {
 
 public:
 
-    InputBuffer(std::string fname1, std::string fname2, int chunk_size, bool is_interleaved)
+    InputBuffer(std::string fname1, int chunk_size)
     : ks1(open_fastq(fname1)),
-    ks2(fname2 == "" ? nullptr : open_fastq(fname2)),
-    chunk_size(chunk_size),
-    is_interleaved(is_interleaved) { }
+    chunk_size(chunk_size) { }
 
     std::mutex mtx;
 
@@ -39,10 +37,7 @@ public:
     bool is_interleaved{false};
 
     void rewind_reset();
-    size_t read_records(std::vector<klibpp::KSeq> &records1,
-            std::vector<klibpp::KSeq> &records2,
-            std::vector<klibpp::KSeq> &records3,
-            AlignmentStatistics &statistics,
+    size_t read_records(std::vector<klibpp::KSeq> &records3,
             int read_count=-1);
 };
 
@@ -62,7 +57,7 @@ public:
 
 
 void perform_task(InputBuffer &input_buffer, OutputBuffer &output_buffer,
-                  AlignmentStatistics& statistics, int& done, const alignment_params &aln_params,
+                  AlignmentStatistics& statistics, int& done,
                   const mapping_params &map_param, const IndexParameters& index_parameters, const References& references, const StrobemerIndex& index, const std::string& read_group_id);
 
 #endif

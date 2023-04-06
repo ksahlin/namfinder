@@ -48,7 +48,6 @@ add_library(salib STATIC ${SOURCES}
   src/aligner.cpp
   src/nam.cpp
   src/randstrobes.cpp
-  src/readlen.cpp
   src/version.cpp
   src/io.cpp
   ext/xxhash.c
@@ -80,7 +79,4 @@ add_executable(dumpstrobes src/dumpstrobes.cpp)
 target_link_libraries(dumpstrobes salib)
 target_include_directories(dumpstrobes PUBLIC src/ ext/ ${PROJECT_BINARY_DIR})
 
-# Currently unused code for which we only want to ensure that it still compiles
-add_executable(unused-code src/unused.cpp)
-target_link_libraries(unused-code salib)
-target_include_directories(unused-code PUBLIC src/ ext/ ${PROJECT_BINARY_DIR})
+
