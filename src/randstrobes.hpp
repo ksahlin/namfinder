@@ -34,7 +34,7 @@ struct QueryRandstrobe {
 
 using QueryRandstrobeVector = std::vector<QueryRandstrobe>;
 
-QueryRandstrobeVector randstrobes_query(int k, unsigned w_min, unsigned w_max, const std::string &seq, int s, int t, uint64_t q, int max_dist);
+QueryRandstrobeVector randstrobes_query(int k, unsigned w_min, unsigned w_max, const std::string &seq, int s, int t, int max_dist);
 
 struct Randstrobe {
     randstrobe_hash_t hash;
@@ -59,13 +59,11 @@ public:
         const std::vector<unsigned int> &pos_to_seq_coordinate,
         unsigned w_min,
         unsigned w_max,
-        uint64_t q,
         int max_dist
     ) : string_hashes(string_hashes)
       , pos_to_seq_coordinate(pos_to_seq_coordinate)
       , w_min(w_min)
       , w_max(w_max)
-      , q(q)
       , max_dist(max_dist)
     {
         if (w_min > w_max) {
@@ -87,7 +85,6 @@ private:
     const std::vector<unsigned int> &pos_to_seq_coordinate;
     const unsigned w_min;
     const unsigned w_max;
-    const uint64_t q;
     const unsigned int max_dist;
     unsigned int strobe1_start = 0;
 };
@@ -134,12 +131,10 @@ public:
         const std::string& seq, size_t k, size_t s, size_t t,
         unsigned w_min,
         unsigned w_max,
-        uint64_t q,
         int max_dist
     ) : syncmer_iterator(SyncmerIterator(seq, k, s, t))
       , w_min(w_min)
       , w_max(w_max)
-      , q(q)
       , max_dist(max_dist)
     { }
 
@@ -150,7 +145,6 @@ private:
     SyncmerIterator syncmer_iterator;
     const unsigned w_min;
     const unsigned w_max;
-    const uint64_t q;
     const unsigned int max_dist;
     std::deque<Syncmer> syncmers;
 };

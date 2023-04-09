@@ -133,17 +133,16 @@ struct IndexCreationStatistics {
 
 struct StrobemerIndex {
     StrobemerIndex(const References& references, const IndexParameters& parameters)
-        : filter_cutoff(0)
+        : filter_cutoff(parameters.filter_cutoff)
         , parameters(parameters)
         , references(references) {}
-    unsigned int filter_cutoff; //This also exists in mapping_params, but is calculated during index generation,
-                                //therefore stored here since it needs to be saved with the index.
+    unsigned int filter_cutoff = parameters.filter_cutoff; //This also exists in mapping_params
     RefRandstrobeVector flat_vector;
     mutable IndexCreationStatistics stats;
 
     void write(const std::string& filename) const;
     void read(const std::string& filename);
-    void populate(float f, size_t n_threads);
+    void populate(int filter_cutoff, size_t n_threads);
     void print_diagnostics(const std::string& logfile_name, int k) const;
     unsigned int find(uint64_t key) const;
     static const unsigned int N = 28;  // store N bits in the 
@@ -188,7 +187,7 @@ struct StrobemerIndex {
     int k() const {
         return parameters.k;
     }
-    
+
 private:
     // std::vector<RefRandstrobeWithHash> add_randstrobes_to_hash_table();
     void add_randstrobes_to_vector(int randstrobe_hashes);

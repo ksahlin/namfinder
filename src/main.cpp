@@ -58,7 +58,8 @@ void log_parameters(const IndexParameters& index_parameters, const mapping_param
         << "w_max: " << index_parameters.w_max << std::endl
         << "Read length (r): " << map_param.r << std::endl
         << "Maximum seed length: " << index_parameters.max_dist + index_parameters.k << std::endl
-        << "R: " << map_param.R << std::endl
+        << "C: " << map_param.C << std::endl
+        << "L: " << map_param.L << std::endl
         << "Expected [w_min, w_max] in #syncmers: [" << index_parameters.w_min << ", " << index_parameters.w_max << "]" << std::endl
         << "Expected [w_min, w_max] in #nucleotides: [" << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_min << ", " << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_max << "]" << std::endl;
 }
@@ -75,68 +76,25 @@ InputBuffer get_input_buffer(const CommandLineOptions& opt) {
         return InputBuffer(opt.reads_filename1, opt.chunk_size);
 }
 
-void show_progress_until_done(std::vector<int>& worker_done, std::vector<AlignmentStatistics>& stats) {
-    Timer timer;
-    bool reported = false;
-    bool done = false;
-    // Waiting time between progress updates
-    // Start with a small value so that there’s no delay if there are very few
-    // reads to align.
-    auto time_to_wait = std::chrono::milliseconds(1);
-    while (!done) {
-        std::this_thread::sleep_for(time_to_wait);
-        // Ramp up waiting time
-        time_to_wait = std::min(time_to_wait * 2, std::chrono::milliseconds(1000));
-        done = true;
-        for (auto is_done : worker_done) {
-            if (!is_done) {
-                done = false;
-                continue;
-            }
-        }
-        auto n_reads = 0;
-        for (auto& stat : stats) {
-            n_reads += stat.n_reads;
-        }
-        auto elapsed = timer.elapsed();
-        if (elapsed >= 1.0) {
-            std::cerr
-                << " Mapped "
-                << std::setw(12) << (n_reads / 1E6) << " M reads @ "
-                << std::setw(8) << (timer.elapsed() * 1E6 / n_reads) << " us/read                   \r";
-            reported = true;
-        }
-    }
-    if (reported) {
-        std::cerr << '\n';
-    }
-}
 
 int run_strobealign(int argc, char **argv) {
     auto opt = parse_command_line_arguments(argc, argv);
 
-    logger.set_level(opt.verbose ? LOG_DEBUG : LOG_INFO);
+//    logger.set_level(opt.verbose ? LOG_DEBUG : LOG_INFO);
     logger.info() << std::setprecision(2) << std::fixed;
-    logger.info() << "This is strobealign " << version_string() << '\n';
+    logger.info() << "This is namfinder " << version_string() << '\n';
     logger.debug() << "Build type: " << CMAKE_BUILD_TYPE << '\n';
     warn_if_no_optimizations();
     logger.debug() << "AVX2 enabled: " << (avx2_enabled() ? "yes" : "no") << '\n';
 
-    if (opt.c >= 64 || opt.c <= 0) {
-        throw BadParameter("c must be greater than 0 and less than 64");
-    }
+//    if (opt.c >= 64 || opt.c <= 0) {
+//        throw BadParameter("c must be greater than 0 and less than 64");
+//    }
 
     InputBuffer input_buffer = get_input_buffer(opt);
     input_buffer.rewind_reset();
-    IndexParameters index_parameters = IndexParameters::from_read_length(
-        opt.r,
-        opt.c_set ? opt.c : IndexParameters::DEFAULT,
-        opt.k_set ? opt.k : IndexParameters::DEFAULT,
-        opt.s_set ? opt.s : IndexParameters::DEFAULT,
-        opt.l_set ? opt.l : IndexParameters::DEFAULT,
-        opt.u_set ? opt.u : IndexParameters::DEFAULT,
-        opt.max_seed_len_set ? opt.max_seed_len : IndexParameters::DEFAULT
-    );
+    IndexParameters index_parameters = IndexParameters(
+            opt.k, opt.s,opt.l,opt.u, opt.max_seed_len, opt.filter_cutoff  );
     logger.debug() << index_parameters << '\n';
 //    alignment_params aln_params;
 //    aln_params.match = opt.A;
@@ -147,12 +105,13 @@ int run_strobealign(int argc, char **argv) {
 
     mapping_params map_param;
     map_param.r = opt.r;
-    map_param.max_secondary = opt.max_secondary;
-    map_param.dropoff_threshold = opt.dropoff_threshold;
-    map_param.R = opt.R;
-    map_param.maxTries = opt.maxTries;
-    map_param.is_sam_out = opt.is_sam_out;
-    map_param.output_unmapped = opt.output_unmapped;
+//    map_param.max_secondary = opt.max_secondary;
+//    map_param.dropoff_threshold = opt.dropoff_threshold;
+//    map_param.R = opt.R;
+//    map_param.maxTries = opt.maxTries;
+//    map_param.is_sam_out = opt.is_sam_out;
+//    map_param.output_unmapped = opt.output_unmapped;
+    map_param.filter_cutoff = opt.filter_cutoff;
 
     log_parameters(index_parameters, map_param);
     logger.debug() << "Threads: " << opt.n_threads << std::endl;
@@ -174,18 +133,11 @@ int run_strobealign(int argc, char **argv) {
     }
 
     StrobemerIndex index(references, index_parameters);
-    if (opt.use_index) {
-        // Read the index from a file
-        assert(!opt.only_gen_index);
-        Timer read_index_timer;
-        std::string sti_path = opt.ref_filename + index_parameters.filename_extension();
-        logger.info() << "Reading index from " << sti_path << '\n';
-        index.read(sti_path);
-        logger.info() << "Total time reading index: " << read_index_timer.elapsed() << " s\n";
-    } else {
         logger.info() << "Indexing ...\n";
         Timer index_timer;
-        index.populate(opt.f, opt.n_threads);
+        logger.debug() << "FILTER CUTOFF: " << std::to_string(opt.filter_cutoff) << std::endl;
+
+        index.populate(opt.filter_cutoff, opt.n_threads);
         
         logger.info() << "  Time generating seeds: " << index.stats.elapsed_generating_seeds.count() << " s" <<  std::endl;
         logger.info() << "  Time estimating number of unique hashes: " << index.stats.elapsed_unique_hashes.count() << " s" <<  std::endl;
@@ -214,21 +166,13 @@ int run_strobealign(int argc, char **argv) {
             index.print_diagnostics(opt.logfile_name, index_parameters.k);
             logger.debug() << "Finished printing log stats" << std::endl;
         }
-        if (opt.only_gen_index) {
-            Timer index_writing_timer;
-            std::string sti_path = opt.ref_filename + index_parameters.filename_extension();
-            logger.info() << "Writing index to " << sti_path << '\n';
-            index.write(opt.ref_filename + index_parameters.filename_extension());
-            logger.info() << "Total time writing index: " << index_writing_timer.elapsed() << " s\n";
-            return EXIT_SUCCESS;
-        }
-    }
+
 
     // Map/align reads
         
     Timer map_align_timer;
-    map_param.rescue_cutoff = map_param.R < 100 ? map_param.R * index.filter_cutoff : 1000;
-    logger.debug() << "Using rescue cutoff: " << map_param.rescue_cutoff << std::endl;
+//    map_param.rescue_cutoff = map_param.R < 100 ? map_param.R * index.filter_cutoff : 1000;
+//    logger.debug() << "Using rescue cutoff: " << map_param.rescue_cutoff << std::endl;
 
     std::streambuf* buf;
     std::ofstream of;
@@ -258,9 +202,7 @@ int run_strobealign(int argc, char **argv) {
             std::ref(index), std::ref(opt.read_group_id));
         workers.push_back(std::move(consumer));
     }
-    if (opt.show_progress && isatty(2)) {
-        show_progress_until_done(worker_done, log_stats_vec);
-    }
+
     for (auto& worker : workers) {
         worker.join();
     }

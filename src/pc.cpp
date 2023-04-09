@@ -135,15 +135,14 @@ void perform_task(
             break;
         }
 
-        std::string sam_out;
-        sam_out.reserve(7*map_param.r * (2* records3.size()));
-        Sam sam{sam_out, references, read_group_id, map_param.output_unmapped};
+        std::string nam_out;
+        nam_out.reserve(7*map_param.r * (2* records3.size()));
         for (size_t i = 0; i < records3.size(); ++i) {
             auto record = records3[i];
-            align_SE_read(record, sam, sam_out, statistics, map_param, index_parameters, references, index);
+            align_SE_read(record, nam_out, statistics, map_param, index_parameters, references, index);
         }
-        output_buffer.output_records(std::move(sam_out), chunk_index);
-        assert(sam_out == "");
+        output_buffer.output_records(std::move(nam_out), chunk_index);
+        assert(nam_out == "");
     }
     done = true;
 }

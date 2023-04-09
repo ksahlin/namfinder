@@ -6,8 +6,12 @@
 #include "revcomp.hpp"
 #include "timer.hpp"
 #include "nam.hpp"
-#include "paf.hpp"
+#include "output.hpp"
 #include "aligner.hpp"
+
+#include "logger.hpp"
+
+static Logger& logger = Logger::get();
 
 using namespace klibpp;
 
@@ -80,30 +84,17 @@ static inline bool sort_scores(const std::tuple<double, alignment, alignment> &a
 }
 
 
-
-/*
- * Determine (roughly) whether the read sequence has some l-mer (with l = k*2/3)
- * in common with the reference sequence
- */
-bool has_shared_substring(const std::string& read_seq, const std::string& ref_seq, int k) {
-    int sub_size = 2 * k / 3;
-    int step_size = k / 3;
-    std::string submer;
-    for (size_t i = 0; i + k <= read_seq.size(); i += step_size) {
-        submer = read_seq.substr(i, sub_size);
-        if (ref_seq.find(submer) != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
+static inline bool compareByQueryCoord(const Nam &a, const Nam &b)
+{
+    // first sort on ref ID, then on query, then on reference
+    return (a.ref_id < b.ref_id) ||
+           ( (a.ref_id == b.ref_id) && (a.query_s < b.query_s) ) ||
+           ((a.ref_id == b.ref_id) && (a.query_s == b.query_s ) && (a.ref_s < b.ref_s)) ;
 }
-
-
 
 
 void align_SE_read(
     const KSeq &record,
-    Sam& sam,
     std::string &outstring,
     AlignmentStatistics &statistics,
     const mapping_params &map_param,
@@ -112,28 +103,43 @@ void align_SE_read(
     const StrobemerIndex& index
 ) {
     Timer strobe_timer;
-    auto query_randstrobes = randstrobes_query(index_parameters.k, index_parameters.w_min, index_parameters.w_max, record.seq, index_parameters.s, index_parameters.t_syncmer, index_parameters.q, index_parameters.max_dist);
+    auto query_randstrobes = randstrobes_query(index_parameters.k, index_parameters.w_min, index_parameters.w_max, record.seq, index_parameters.s, index_parameters.t_syncmer, index_parameters.max_dist);
     statistics.tot_construct_strobemers += strobe_timer.duration();
 
     // Find NAMs
     Timer nam_timer;
+
+    logger.debug() << "index_parameters.filter_cutoff: " << std::to_string(index_parameters.filter_cutoff)  << "index.filter_cutoff: " << std::to_string(index.filter_cutoff) << std::endl;
+
     auto [nonrepetitive_fraction, nams] = find_nams(query_randstrobes, index);
     statistics.tot_find_nams += nam_timer.duration();
 
-    if (map_param.R > 1) {
-        Timer rescue_timer;
-        if (nams.empty() || nonrepetitive_fraction < 0.7) {
-            statistics.tried_rescue += 1;
-            nams = find_nams_rescue(query_randstrobes, index, map_param.rescue_cutoff);
-        }
-        statistics.tot_time_rescue += rescue_timer.duration();
-    }
+//    if (map_param.R > 1) {
+//        Timer rescue_timer;
+//        if (nams.empty() || nonrepetitive_fraction < 0.7) {
+//            statistics.tried_rescue += 1;
+//            nams = find_nams_rescue(query_randstrobes, index, map_param.rescue_cutoff);
+//        }
+//        statistics.tot_time_rescue += rescue_timer.duration();
+//    }
 
     Timer nam_sort_timer;
     std::sort(nams.begin(), nams.end(), score);
     statistics.tot_sort_nams += nam_sort_timer.duration();
 
-    output_hits_paf(outstring, nams, record.name, references, index_parameters.k,
-                        record.seq.length());
+    // Take first L NAMs for output
+    unsigned int cut_nam_vec_at = (map_param.L < nams.size()) ? map_param.L : nams.size();
+    std::vector<Nam> nams_cut(nams.begin(), nams.begin() + cut_nam_vec_at);
+
+    //Sort hits based on start choordinate on query sequence
+    if (!map_param.sort_on_scores) {
+        std::sort(nams_cut.begin(), nams_cut.end(), compareByQueryCoord);
+    }
+
+    output_nams(outstring, nams, record.name, references);
+//    output_hits_paf(outstring, nams, record.name, references, index_parameters.k,
+//                        record.seq.length());
 
 }
+
+

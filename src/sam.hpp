@@ -37,15 +37,9 @@ enum SamFlags {
 class Sam {
 
 public:
-    Sam(std::string& sam_string, const References& references, const std::string& read_group_id = "", bool output_unmapped = true)
+    Sam(std::string& sam_string, const References& references, const std::string& read_group_id = "")
         : sam_string(sam_string)
-        , references(references)
-        , output_unmapped(output_unmapped) {
-            if (read_group_id.empty()) {
-                tail = "\n";
-            } else {
-                tail = "\tRG:Z:" + read_group_id + "\n";
-            }
+        , references(references) {
         }
 
     /* Add an alignment */

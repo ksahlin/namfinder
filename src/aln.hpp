@@ -47,44 +47,42 @@ struct AlignmentStatistics {
 
 struct mapping_params {
     int r { 150 };
-    int max_secondary { 0 };
-    float dropoff_threshold { 0.5 };
+    int filter_cutoff { 1000 };
     int R { 2 };
-    int maxTries { 20 };
-    int rescue_cutoff;
-    bool is_sam_out { true };
-    bool output_unmapped { true };
+    int L { 1000 };
+    int C { 1000 };
+    bool sort_on_scores { false };
+
 };
 
-class i_dist_est {
-public:
-    float sample_size = 1;
-    float mu = 300;
-    float sigma = 100;
-    float V = 10000;
-    float SSE = 10000;
+//class i_dist_est {
+//public:
+//    float sample_size = 1;
+//    float mu = 300;
+//    float sigma = 100;
+//    float V = 10000;
+//    float SSE = 10000;
+//
+//    // Add a new observation
+//    void update(int dist);
+//};
 
-    // Add a new observation
-    void update(int dist);
-};
-
-void align_PE_read(
-    const klibpp::KSeq& record1,
-    const klibpp::KSeq& record2,
-    Sam& sam,
-    std::string& outstring,
-    AlignmentStatistics& statistics,
-    i_dist_est& isize_est,
-    const Aligner& aligner,
-    const mapping_params& map_param,
-    const IndexParameters& index_parameters,
-    const References& references,
-    const StrobemerIndex& index
-);
+//void align_PE_read(
+//    const klibpp::KSeq& record1,
+//    const klibpp::KSeq& record2,
+//    Sam& sam,
+//    std::string& outstring,
+//    AlignmentStatistics& statistics,
+////    i_dist_est& isize_est,
+////    const Aligner& aligner,
+//    const mapping_params& map_param,
+//    const IndexParameters& index_parameters,
+//    const References& references,
+//    const StrobemerIndex& index
+//);
 
 void align_SE_read(
     const klibpp::KSeq& record,
-    Sam& sam,
     std::string& outstring,
     AlignmentStatistics &statistics,
     const mapping_params& map_param,
@@ -94,8 +92,6 @@ void align_SE_read(
 );
 
 // Private declarations, only here because we need them in tests
-
-bool has_shared_substring(const std::string& read_seq, const std::string& ref_seq, int k);
 
 std::pair<size_t, size_t> highest_scoring_segment(const std::string& query, const std::string& ref, int match, int mismatch);
 

@@ -34,7 +34,6 @@ static inline syncmer_hash_t syncmer_kmer_hash(uint64_t packed) {
     // return robin_hash(yk);
     // return yk;
     // return hash64(yk, mask);
-    // return sahlin_dna_hash(yk, mask);
     return XXH64(&packed, sizeof(uint64_t), 0);
 }
 
@@ -142,14 +141,10 @@ Randstrobe RandstrobeIterator::get(unsigned int strobe1_start) const {
     uint64_t min_val = UINT64_MAX;
     unsigned int strobe_pos_next = strobe1_start; // Defaults if no nearby syncmer
     uint64_t strobe_hashval_next = string_hashes[strobe1_start];
-    std::bitset<64> b;
 
     for (auto i = w_start; i <= w_end; i++) {
         assert(i < string_hashes.size());
-        // Method 3' skew sample more for prob exact matching
-        b = (strobe_hashval ^ string_hashes[i])  & q;
-        uint64_t res = b.count();
-
+        uint64_t res = (strobe_hashval ^ string_hashes[i]) ;
         if (pos_to_seq_coordinate[i] > seq_end_constraint) {
             break;
         }
@@ -183,10 +178,7 @@ Randstrobe RandstrobeIterator2::next() {
 
     for (auto i = w_min; i < syncmers.size() && syncmers[i].position <= max_position; i++) {
         assert(i <= w_max);
-        // Method 3' skew sample more for prob exact matching
-        std::bitset<64> b;
-        b = (strobe1.hash ^ syncmers[i].hash) & q;
-        uint64_t res = b.count();
+        uint64_t res = (strobe1.hash ^ syncmers[i].hash);
         if (res < min_val) {
             min_val = res;
             strobe2 = syncmers[i];
@@ -210,7 +202,6 @@ QueryRandstrobeVector randstrobes_query(
     const std::string& seq,
     int s,
     int t,
-    uint64_t q,
     int max_dist
 ) {
     // this function differs from  the function seq_to_randstrobes2 which creating randstrobes for the reference.
@@ -234,7 +225,7 @@ QueryRandstrobeVector randstrobes_query(
         return randstrobes2;
     }
 
-    RandstrobeIterator randstrobe_fwd_iter { string_hashes, pos_to_seq_coordinate, w_min, w_max, q, max_dist };
+    RandstrobeIterator randstrobe_fwd_iter { string_hashes, pos_to_seq_coordinate, w_min, w_max, max_dist };
     while (randstrobe_fwd_iter.has_next()) {
         auto randstrobe = randstrobe_fwd_iter.next();
         randstrobes2.push_back(
@@ -248,7 +239,7 @@ QueryRandstrobeVector randstrobes_query(
         pos_to_seq_coordinate[i] = read_length - pos_to_seq_coordinate[i] - k;
     }
 
-    RandstrobeIterator randstrobe_rc_iter { string_hashes, pos_to_seq_coordinate, w_min, w_max, q, max_dist };
+    RandstrobeIterator randstrobe_rc_iter { string_hashes, pos_to_seq_coordinate, w_min, w_max, max_dist };
     while (randstrobe_rc_iter.has_next()) {
         auto randstrobe = randstrobe_rc_iter.next();
         randstrobes2.push_back(

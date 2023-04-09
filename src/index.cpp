@@ -151,7 +151,7 @@ void StrobemerIndex::read(const std::string& filename) {
 int estimate_randstrobe_hashes(const std::string& seq, const IndexParameters& parameters) {
     int num = 0;
 
-    auto randstrobe_iter = RandstrobeIterator2(seq, parameters.k, parameters.s, parameters.t_syncmer, parameters.w_min, parameters.w_max, parameters.q, parameters.max_dist);
+    auto randstrobe_iter = RandstrobeIterator2(seq, parameters.k, parameters.s, parameters.t_syncmer, parameters.w_min, parameters.w_max, parameters.max_dist);
     Randstrobe randstrobe;
     while ((randstrobe = randstrobe_iter.next()) != randstrobe_iter.end()) {
         num++;
@@ -193,7 +193,7 @@ size_t estimate_randstrobe_hashes_parallel(const References& references, const I
     return total;
 }
 
-void StrobemerIndex::populate(float f, size_t n_threads) {
+void StrobemerIndex::populate(int filter_cutoff, size_t n_threads) {
     stats.tot_strobemer_count = 0;
 
     Timer estimate_unique;
@@ -310,17 +310,7 @@ void StrobemerIndex::populate(float f, size_t n_threads) {
 
     std::sort(strobemer_counts.begin(), strobemer_counts.end(), std::greater<int>());
 
-    // unsigned int index_cutoff = randstrobe_map.size()*f;
-
-    unsigned int index_cutoff= randstrobe_hash_size *f;
-    stats.index_cutoff = index_cutoff;
-    if (!strobemer_counts.empty()){
-        filter_cutoff = index_cutoff < strobemer_counts.size() ?  strobemer_counts[index_cutoff] : strobemer_counts.back();
-        filter_cutoff = std::max(30U, filter_cutoff); // cutoff is around 30-50 on hg38. No reason to have a lower cutoff than this if aligning to a smaller genome or contigs.
-        filter_cutoff = std::min(100U, filter_cutoff); // limit upper cutoff for normal NAM finding - use rescue mode instead
-    } else {
-        filter_cutoff = 30;
-    }
+    stats.index_cutoff = filter_cutoff;
     stats.filter_cutoff = filter_cutoff;
     stats.elapsed_hash_index = hash_index_timer.duration();
     stats.unique_mers = randstrobe_hash_size;
@@ -334,7 +324,7 @@ void StrobemerIndex::add_randstrobes_to_vector(int randstrobe_hashes){
         if (seq.length() < parameters.w_max) {
             continue;
         }
-        auto randstrobe_iter = RandstrobeIterator2(seq, parameters.k, parameters.s, parameters.t_syncmer, parameters.w_min, parameters.w_max, parameters.q, parameters.max_dist);
+        auto randstrobe_iter = RandstrobeIterator2(seq, parameters.k, parameters.s, parameters.t_syncmer, parameters.w_min, parameters.w_max, parameters.max_dist);
         std::vector<Randstrobe> chunk;
         // TODO
         // Chunking makes this function faster, but the speedup is achieved even

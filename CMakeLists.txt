@@ -41,7 +41,7 @@ add_library(salib STATIC ${SOURCES}
   src/index.cpp
   src/indexparameters.cpp
   src/sam.cpp
-  src/paf.cpp
+  src/output.cpp
   src/pc.cpp
   src/aln.cpp
   src/cigar.cpp

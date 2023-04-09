@@ -35,11 +35,7 @@ std::pair<float, std::vector<Nam>> find_nams(
     const StrobemerIndex& index
 );
 
-std::vector<Nam> find_nams_rescue(
-    const QueryRandstrobeVector &query_randstrobes,
-    const StrobemerIndex& index,
-    unsigned int filter_cutoff
-);
+
 
 std::ostream& operator<<(std::ostream& os, const Nam& nam);
 

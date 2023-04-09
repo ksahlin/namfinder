@@ -1,26 +1,20 @@
 ![CI](https://github.com/ksahlin/strobealign/workflows/CI/badge.svg)
 [![install with Bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/recipes/strobealign/README.html)
 
-# strobealign: A fast short-read aligner
+# namfinder: A fast NAM finder based on strobemers
 
-Strobealign is a read mapper that is typically significantly faster than other read mappers while achieving comparable or better accuracy, see the [performance evaluation](#v07-performance).
+Namfinder is mapping tool used to find non-overlapping approximate matches, kinda like MEMs, but inexact. 
+The tool is the new gereration of previous proof-of-concept tool StrobeMap that was implemented for the strobemers paper.
+Namfinder however utilizes many of the clever implementation tricks that we realized in strobealign.
+Namfinder has borrowed the whole indeximg codebase from strobealign, but is used only for finding NAM seeds (no extension, primary mapping locations etc)
 
 ## Features
 
-- Map single-end and paired-end reads
 - Multithreading support
 - Fast indexing (2-5 minutes for a human-sized reference genome)
 - On-the-fly indexing by default. Optionally create an on-disk index.
-- Output in standard SAM format or produce even faster results by writing PAF (without alignments)
-- Strobealign is most suited for read lengths between 100 and 500 bp
+- Output in MUMmer MEM format
 
-## Background
-
-Strobealign achieves its speedup by using a dynamic seed size obtained from [syncmer](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7869670/)-thinned [strobemers](https://github.com/ksahlin/strobemers#what-is-a-strobemer).
-
-For details, refer to [Strobealign: flexible seed size enables ultra-fast and accurate read alignment](https://doi.org/10.1186/s13059-022-02831-7). The paper describes v0.7.1 of the program.
-
-For an introduction, see also the 📺 [RECOMB-Seq video from 2022: “Flexible seed size enables ultra-fast and accurate read alignment”](https://www.youtube.com/watch?v=cn32telW63w) (12 minutes). For a more detailed presentation of the underlying seeding mechanism in strobealign (strobemers) see 📺 [“Efficient sequence similarity searches with strobemers”](https://www.youtube.com/watch?v=DS4tURz1Wio) (73 minutes).
 
 ## Table of contents
 
