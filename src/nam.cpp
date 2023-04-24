@@ -20,12 +20,12 @@ void add_to_hits_per_ref(
     const StrobemerIndex& index,
     // RandstrobeMapEntry randstrobe_map_entry,
     unsigned int position,
-    int min_diff
+    int min_diff,
+    int& tot_hits
 ) {
     // Determine whether the hash table’s value directly represents a
     // ReferenceMer (this is the case if count==1) or an offset/count
     // pair that refers to entries in the flat_vector.
-
     unsigned int count = index.get_count(position);
     if (count == 1) {
         // auto r = randstrobe_map_entry.as_ref_randstrobe();
@@ -35,8 +35,10 @@ void add_to_hits_per_ref(
         if (diff <= min_diff) {
             hits_per_ref[index.reference_index(position)].push_back(Hit{query_s, query_e, ref_s, ref_e, is_rc});
             min_diff = diff;
+            tot_hits ++;
         }
     } else {
+//        logger.debug() << "add_to_hits_per_ref count: " << std::to_string(count) << std::endl;
         for (unsigned int j = position; j < position + count; ++j) {
             int ref_s = index.get_strob1_position(j);
             int ref_e = ref_s + index.strobe2_offset(j) + index.k();
@@ -44,6 +46,7 @@ void add_to_hits_per_ref(
             if (diff <= min_diff) {
                 hits_per_ref[index.reference_index(j)].push_back(Hit{query_s, query_e, ref_s, ref_e, is_rc});
                 min_diff = diff;
+                tot_hits ++;
             }
         }
     }
@@ -71,30 +74,40 @@ std::vector<Nam> merge_hits_into_nams(
             bool is_added = false;
             for (auto & o : open_nams) {
 
-                // Extend NAM
-                if (( o.is_rc == h.is_rc) && (o.query_prev_hit_startpos < h.query_s) && (h.query_s <= o.query_e ) && (o.ref_prev_hit_startpos < h.ref_s) && (h.ref_s <= o.ref_e) ){
-                    if ( (h.query_e > o.query_e) && (h.ref_e > o.ref_e) ) {
+//                // Extend NAM
+//                if (( o.is_rc == h.is_rc) && (o.query_prev_hit_startpos < h.query_s) && (h.query_s <= o.query_e ) && (o.ref_prev_hit_startpos < h.ref_s) && (h.ref_s <= o.ref_e) ){
+//                    if ( (h.query_e > o.query_e) && (h.ref_e > o.ref_e) ) {
+//                        o.query_e = h.query_e;
+//                        o.ref_e = h.ref_e;
+//                        o.query_prev_hit_startpos = h.query_s; // ` the last strobemer hit in case of outputting paf
+//                        o.ref_prev_hit_startpos = h.ref_s; // log the last strobemer hit in case of outputting paf
+//                        o.n_hits ++;
+//                        is_added = true;
+//                        break;
+//                    }
+//                    else if ((h.query_e <= o.query_e) && (h.ref_e <= o.ref_e)) {
+//                        o.query_prev_hit_startpos = h.query_s; // log the last strobemer hit in case of outputting paf
+//                        o.ref_prev_hit_startpos = h.ref_s; // log the last strobemer hit in case of outputting paf
+//                        o.n_hits ++;
+//                        is_added = true;
+//                        break;
+//                    }
+//                }
+
+                // Extend NAM (version from StrobeMap)
+                if ( ( o.query_prev_hit_startpos < h.query_s) && (h.query_s <= o.query_e ) && ( o.ref_prev_hit_startpos <= h.ref_s) && (h.ref_s <= o.ref_e) ){
+
+                    if (h.query_e > o.query_e) {
                         o.query_e = h.query_e;
+                    }
+                    if (h.ref_e > o.ref_e) {
                         o.ref_e = h.ref_e;
-//                        o.previous_query_start = h.query_s;
-//                        o.previous_ref_start = h.ref_s; // keeping track so that we don't . Can be caused by interleaved repeats.
-                        o.query_prev_hit_startpos = h.query_s; // ` the last strobemer hit in case of outputting paf
-                        o.ref_prev_hit_startpos = h.ref_s; // log the last strobemer hit in case of outputting paf
-                        o.n_hits ++;
-//                        o.score += (float)1/ (float)h.count;
-                        is_added = true;
-                        break;
                     }
-                    else if ((h.query_e <= o.query_e) && (h.ref_e <= o.ref_e)) {
-//                        o.previous_query_start = h.query_s;
-//                        o.previous_ref_start = h.ref_s; // keeping track so that we don't . Can be caused by interleaved repeats.
-                        o.query_prev_hit_startpos = h.query_s; // log the last strobemer hit in case of outputting paf
-                        o.ref_prev_hit_startpos = h.ref_s; // log the last strobemer hit in case of outputting paf
-                        o.n_hits ++;
-//                        o.score += (float)1/ (float)h.count;
-                        is_added = true;
-                        break;
-                    }
+                    o.query_prev_hit_startpos = h.query_s;
+                    o.ref_prev_hit_startpos = h.ref_s; // keeping track so that we don't . Can be caused by interleaved repeats.
+                    o.n_hits ++;
+                    is_added = true;
+                    break;
                 }
 
             }
@@ -177,7 +190,7 @@ std::pair<float, std::vector<Nam>> find_nams(
     2. the occur times of the hash value, use a flag 
     3. need to know reference index, strobe1 position, storbe2 - strobe1
     */
-    int nr_good_hits = 0, total_hits = 0;
+    int nr_good_hits = 0, total_hits = 0, tot_hits = 0;
     for (const auto &q : query_randstrobes) {
         unsigned int position = index.find(q.hash);
         if (position != -1){
@@ -188,81 +201,19 @@ std::pair<float, std::vector<Nam>> find_nams(
                 continue;
             } 
             nr_good_hits++;
-            add_to_hits_per_ref(hits_per_ref, q.start, q.end, q.is_reverse, index, position, 100'000);
+            add_to_hits_per_ref(hits_per_ref, q.start, q.end, q.is_reverse, index, position, 100'000, tot_hits);
         }
     }
+    logger.debug() << "add_to_hits_per_ref DONE: " << std::to_string(hits_per_ref.size()) << std::endl;
+    logger.debug() << "add_to_hits_per_ref TOT count: " << std::to_string(tot_hits) << std::endl;
+
     float nonrepetitive_fraction = total_hits > 0 ? ((float) nr_good_hits) / ((float) total_hits) : 1.0;
     auto nams = merge_hits_into_nams(hits_per_ref, index.k(), false);
+    logger.debug() << "merge_hits_into_nams DONE: " << std::to_string(nams.size()) << std::endl;
+
     return make_pair(nonrepetitive_fraction, nams);
 }
 
-/*
- * Find a query’s NAMs, using also some of the randstrobes that occur more often
- * than filter_cutoff.
- */
-//std::vector<Nam> find_nams_rescue(
-//    const QueryRandstrobeVector &query_randstrobes,
-//    const StrobemerIndex& index,
-//    unsigned int filter_cutoff
-//) {
-//    struct RescueHit {
-//        unsigned int count;
-//        // RandstrobeMapEntry randstrobe_map_entry;
-//        unsigned int position;
-//        unsigned int query_s;
-//        unsigned int query_e;
-//        bool is_rc;
-//
-//        bool operator< (const RescueHit& rhs) const {
-//            return std::tie(count, query_s, query_e, is_rc)
-//                < std::tie(rhs.count, rhs.query_s, rhs.query_e, rhs.is_rc);
-//        }
-//    };
-//
-//    robin_hood::unordered_map<unsigned int, std::vector<Hit>> hits_per_ref;
-//    std::vector<RescueHit> hits_fw;
-//    std::vector<RescueHit> hits_rc;
-//    hits_per_ref.reserve(100);
-//    hits_fw.reserve(5000);
-//    hits_rc.reserve(5000);
-//
-//    for (auto &qr : query_randstrobes) {
-//        // auto ref_hit = index.find(qr.hash);
-//        unsigned int position = index.find(qr.hash);
-//        if (position != -1){
-//            unsigned int count = index.get_count(position);
-//            RescueHit rh{count, position, qr.start, qr.end, qr.is_reverse};
-//            if (qr.is_reverse){
-//                hits_rc.push_back(rh);
-//            } else {
-//                hits_fw.push_back(rh);
-//            }
-//        }
-//        // if (ref_hit != index.end()) {
-//        //     RescueHit rh{ref_hit->second.count(), ref_hit->second, qr.start, qr.end, qr.is_reverse};
-//        //     if (qr.is_reverse){
-//        //         hits_rc.push_back(rh);
-//        //     } else {
-//        //         hits_fw.push_back(rh);
-//        //     }
-//        // }
-//    }
-//
-//    std::sort(hits_fw.begin(), hits_fw.end());
-//    std::sort(hits_rc.begin(), hits_rc.end());
-//    for (auto& rescue_hits : {hits_fw, hits_rc}) {
-//        int cnt = 0;
-//        for (auto &rh : rescue_hits) {
-//            if ((rh.count > filter_cutoff && cnt >= 5) || rh.count > 1000) {
-//                break;
-//            }
-//            add_to_hits_per_ref(hits_per_ref, rh.query_s, rh.query_e, rh.is_rc, index, rh.position, 1000);
-//            cnt++;
-//        }
-//    }
-//
-//    return merge_hits_into_nams(hits_per_ref, index.k(), true);
-//}
 
 std::ostream& operator<<(std::ostream& os, const Nam& n) {
     os << "Nam(query: " << n.query_s << ".." << n.query_e << ", ref: " << n.ref_s << ".." << n.ref_e << ", score=" << n.score << ")";

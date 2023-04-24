@@ -46,7 +46,6 @@ struct AlignmentStatistics {
 };
 
 struct mapping_params {
-    int r { 150 };
     int filter_cutoff { 1000 };
     int R { 2 };
     int L { 1000 };

@@ -58,6 +58,6 @@ public:
 
 void perform_task(InputBuffer &input_buffer, OutputBuffer &output_buffer,
                   AlignmentStatistics& statistics, int& done,
-                  const mapping_params &map_param, const IndexParameters& index_parameters, const References& references, const StrobemerIndex& index, const std::string& read_group_id);
+                  const mapping_params &map_param, const IndexParameters& index_parameters, const References& references, const StrobemerIndex& index);
 
 #endif

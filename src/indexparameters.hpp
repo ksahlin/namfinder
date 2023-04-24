@@ -26,10 +26,10 @@ public:
         , s(s)
         , l(l)
         , u(u)
-        , max_dist(max_dist)
         , t_syncmer((k - s) / 2 + 1)
-        , w_min(std::max(1, k / (k - s + 1) + l))
-        , w_max(k / (k - s + 1) + u)
+        , w_min(std::max(1, l))
+        , w_max(std::max(1, u))
+        , max_dist(u + k+1)
         , filter_cutoff(filter_cutoff)
     {
         verify();

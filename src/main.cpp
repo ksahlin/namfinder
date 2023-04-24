@@ -56,9 +56,8 @@ void log_parameters(const IndexParameters& index_parameters, const mapping_param
         << "s: " << index_parameters.s << std::endl
         << "w_min: " << index_parameters.w_min << std::endl
         << "w_max: " << index_parameters.w_max << std::endl
-        << "Read length (r): " << map_param.r << std::endl
         << "Maximum seed length: " << index_parameters.max_dist + index_parameters.k << std::endl
-        << "C: " << map_param.C << std::endl
+        << "C: " << map_param.filter_cutoff << std::endl
         << "L: " << map_param.L << std::endl
         << "Expected [w_min, w_max] in #syncmers: [" << index_parameters.w_min << ", " << index_parameters.w_max << "]" << std::endl
         << "Expected [w_min, w_max] in #nucleotides: [" << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_min << ", " << (index_parameters.k - index_parameters.s + 1) * index_parameters.w_max << "]" << std::endl;
@@ -96,22 +95,10 @@ int run_strobealign(int argc, char **argv) {
     IndexParameters index_parameters = IndexParameters(
             opt.k, opt.s,opt.l,opt.u, opt.max_seed_len, opt.filter_cutoff  );
     logger.debug() << index_parameters << '\n';
-//    alignment_params aln_params;
-//    aln_params.match = opt.A;
-//    aln_params.mismatch = opt.B;
-//    aln_params.gap_open = opt.O;
-//    aln_params.gap_extend = opt.E;
-//    aln_params.end_bonus = opt.end_bonus;
 
     mapping_params map_param;
-    map_param.r = opt.r;
-//    map_param.max_secondary = opt.max_secondary;
-//    map_param.dropoff_threshold = opt.dropoff_threshold;
-//    map_param.R = opt.R;
-//    map_param.maxTries = opt.maxTries;
-//    map_param.is_sam_out = opt.is_sam_out;
-//    map_param.output_unmapped = opt.output_unmapped;
     map_param.filter_cutoff = opt.filter_cutoff;
+    map_param.L = opt.L;
 
     log_parameters(index_parameters, map_param);
     logger.debug() << "Threads: " << opt.n_threads << std::endl;
@@ -199,7 +186,7 @@ int run_strobealign(int argc, char **argv) {
         std::thread consumer(perform_task, std::ref(input_buffer), std::ref(output_buffer),
             std::ref(log_stats_vec[i]), std::ref(worker_done[i]),
             std::ref(map_param), std::ref(index_parameters), std::ref(references),
-            std::ref(index), std::ref(opt.read_group_id));
+            std::ref(index));
         workers.push_back(std::move(consumer));
     }
 
@@ -214,10 +201,6 @@ int run_strobealign(int argc, char **argv) {
     }
 
     logger.info() << "Total mapping sites tried: " << tot_statistics.tot_all_tried << std::endl
-        << "Total calls to ssw: " << tot_statistics.tot_aligner_calls << std::endl
-        << "Calls to ksw (rescue mode): " << tot_statistics.tot_rescued << std::endl
-        << "Did not fit strobe start site: " << tot_statistics.did_not_fit << std::endl
-        << "Tried rescue: " << tot_statistics.tried_rescue << std::endl
         << "Total time mapping: " << map_align_timer.elapsed() << " s." << std::endl
         << "Total time reading read-file(s): " << tot_statistics.tot_read_file.count() / opt.n_threads << " s." << std::endl
         << "Total time creating strobemers: " << tot_statistics.tot_construct_strobemers.count() / opt.n_threads << " s." << std::endl

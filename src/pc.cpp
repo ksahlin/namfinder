@@ -116,8 +116,7 @@ void perform_task(
     const mapping_params &map_param,
     const IndexParameters& index_parameters,
     const References& references,
-    const StrobemerIndex& index,
-    const std::string& read_group_id
+    const StrobemerIndex& index
 ) {
     bool eof = false;
 //    Aligner aligner{aln_params};
@@ -136,7 +135,7 @@ void perform_task(
         }
 
         std::string nam_out;
-        nam_out.reserve(7*map_param.r * (2* records3.size()));
+        nam_out.reserve(100 * (2* records3.size()));
         for (size_t i = 0; i < records3.size(); ++i) {
             auto record = records3[i];
             align_SE_read(record, nam_out, statistics, map_param, index_parameters, references, index);

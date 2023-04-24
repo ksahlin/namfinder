@@ -155,7 +155,7 @@ Randstrobe RandstrobeIterator::get(unsigned int strobe1_start) const {
             strobe_hashval_next = string_hashes[i];
         }
     }
-    uint64_t hash_randstrobe2 = string_hashes[strobe1_start] + strobe_hashval_next;
+    uint64_t hash_randstrobe2 = 2*string_hashes[strobe1_start] - strobe_hashval_next;
 
     return Randstrobe { hash_randstrobe2, seq_pos_strobe1, pos_to_seq_coordinate[strobe_pos_next] };
 }
@@ -185,7 +185,7 @@ Randstrobe RandstrobeIterator2::next() {
         }
     }
     syncmers.pop_front();
-    return Randstrobe{strobe1.hash + strobe2.hash, static_cast<unsigned int>(strobe1.position), static_cast<unsigned int>(strobe2.position)};
+    return Randstrobe{2*strobe1.hash - strobe2.hash, static_cast<unsigned int>(strobe1.position), static_cast<unsigned int>(strobe2.position)};
 }
 
 /*

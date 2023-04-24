@@ -7,11 +7,11 @@ struct SeedingArguments {
     SeedingArguments(args::ArgumentParser& parser)
         : parser(parser)
         //n{parser, "INT", "Number of strobes [2]", {'n'}}
-        , r{parser, "INT",
-            "Mean read length. This parameter is estimated from the first 500 "
-            "records in each read file. No need to set this explicitly unless you have a reason.", {'r'}}
+//        , r{parser, "INT",
+//            "Mean read length. This parameter is estimated from the first 500 "
+//            "records in each read file. No need to set this explicitly unless you have a reason.", {'r'}}
         , m{parser, "INT",
-            "Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, "
+            "Maximum seed length. "
             "the seed length distribution is usually determined by parameters l and u. "
             "Then, this parameter is only active in regions where syncmers are very sparse.", {'m'}}
         , k{parser, "INT", "Strobe length, has to be below 32. [20]", {'k'}}
@@ -27,7 +27,7 @@ struct SeedingArguments {
     {
     }
     args::ArgumentParser& parser;
-    args::ValueFlag<int> r, m, k, l, u, c, s;
+    args::ValueFlag<int> m, k, l, u, c, s;
 };
 
 #endif
