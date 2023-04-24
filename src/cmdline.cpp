@@ -8,11 +8,11 @@ class Version {};
 
 CommandLineOptions parse_command_line_arguments(int argc, char **argv) {
 
-    args::ArgumentParser parser("strobelign " + version_string());
+    args::ArgumentParser parser("namfinder " + version_string());
     parser.helpParams.showTerminator = false;
     parser.helpParams.helpindent = 20;
     parser.helpParams.width = 90;
-    parser.helpParams.programName = "strobealign";
+    parser.helpParams.programName = "namfinder";
     parser.helpParams.shortSeparator = " ";
 
     args::HelpFlag help(parser, "help", "Print help and exit", {'h', "help"});

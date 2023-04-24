@@ -6,8 +6,7 @@
 #include "kseq++.hpp"
 #include "index.hpp"
 #include "refs.hpp"
-#include "sam.hpp"
-#include "aligner.hpp"
+//#include "aligner.hpp"
 
 struct AlignmentStatistics {
     std::chrono::duration<double> tot_read_file{0};

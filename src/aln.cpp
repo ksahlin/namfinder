@@ -7,7 +7,7 @@
 #include "timer.hpp"
 #include "nam.hpp"
 #include "output.hpp"
-#include "aligner.hpp"
+//#include "aligner.hpp"
 
 #include "logger.hpp"
 
@@ -15,13 +15,7 @@ static Logger& logger = Logger::get();
 
 using namespace klibpp;
 
-static inline alignment get_alignment(
-    const Aligner& aligner,
-    const Nam &n,
-    const References& references,
-    const Read& read,
-    bool fits
-);
+
 
 static inline bool score(const Nam &a, const Nam &b) {
     return a.score > b.score;
@@ -77,11 +71,6 @@ bool reverse_nam_if_needed(Nam& n, const Read& read, const References& reference
 
 
 
-static inline bool sort_scores(const std::tuple<double, alignment, alignment> &a,
-                               const std::tuple<double, alignment, alignment> &b)
-{
-    return std::get<0>(a) > std::get<0>(b);
-}
 
 
 static inline bool compareByQueryCoord(const Nam &a, const Nam &b)

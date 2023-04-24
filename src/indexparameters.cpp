@@ -35,7 +35,6 @@ IndexParameters IndexParameters::read(std::istream& is) {
     int s = read_int_from_istream(is);
     int l = read_int_from_istream(is);
     int u = read_int_from_istream(is);
-    int q = read_int_from_istream(is);
     int max_dist = read_int_from_istream(is);
     int filter_cutoff = read_int_from_istream(is);
     return IndexParameters(k, s, l, u, max_dist, filter_cutoff);

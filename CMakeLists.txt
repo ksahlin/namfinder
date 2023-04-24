@@ -40,19 +40,16 @@ add_library(salib STATIC ${SOURCES}
   src/cmdline.cpp
   src/index.cpp
   src/indexparameters.cpp
-  src/sam.cpp
   src/output.cpp
   src/pc.cpp
   src/aln.cpp
-  src/cigar.cpp
-  src/aligner.cpp
+  #src/cigar.cpp
+  #src/aligner.cpp
   src/nam.cpp
   src/randstrobes.cpp
   src/version.cpp
   src/io.cpp
   ext/xxhash.c
-  ext/ssw/ssw_cpp.cpp
-  ext/ssw/ssw.c
 )
 target_include_directories(salib PUBLIC src/ ext/ ${PROJECT_BINARY_DIR})
 target_link_libraries(salib PUBLIC ZLIB::ZLIB Threads::Threads)
@@ -64,19 +61,6 @@ add_executable(namfinder src/main.cpp)
 target_link_libraries(namfinder PUBLIC salib cmake_git_version_tracking)
 install(TARGETS namfinder DESTINATION bin)
 
-add_executable(test-namfinder
-  tests/tests.cpp
-  tests/test_input.cpp
-  tests/test_refs.cpp
-  tests/test_sam.cpp
-  tests/test_aligner.cpp
-  tests/test_cigar.cpp
-)
-target_link_libraries(test-namfinder salib)
-target_include_directories(test-namfinder PUBLIC src/ ext/ ${PROJECT_BINARY_DIR})
 
-add_executable(dumpstrobes src/dumpstrobes.cpp)
-target_link_libraries(dumpstrobes salib)
-target_include_directories(dumpstrobes PUBLIC src/ ext/ ${PROJECT_BINARY_DIR})
 
 

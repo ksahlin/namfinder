@@ -1,6 +1,3 @@
-![CI](https://github.com/ksahlin/strobealign/workflows/CI/badge.svg)
-[![install with Bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](http://bioconda.github.io/recipes/strobealign/README.html)
-
 # namfinder: A fast NAM finder based on strobemers
 
 Namfinder is mapping tool used to find non-overlapping approximate matches (NAMs). NAMs are constructed from overlapping strobemer seeds. 

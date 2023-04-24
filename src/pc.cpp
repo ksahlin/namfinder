@@ -14,7 +14,6 @@
 #include "robin_hood.h"
 #include "index.hpp"
 #include "kseq++.hpp"
-#include "sam.hpp"
 
 // distribute_interleaved implements the 'interleaved' format:
 // If two consequent reads have the same name, they are considered to be a pair.
