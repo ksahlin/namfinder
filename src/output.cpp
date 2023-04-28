@@ -57,11 +57,13 @@
 
 void output_nams(std::string &nam_output, const std::vector<Nam> &nams, std::string query_name, const References& references) {
 
+    // the +1 are because 1-indexed coordinate system in utput file
+
     // Output results forward
     nam_output.append("> " + query_name + "\n");
     for (auto n: nams ){
         if (!n.is_rc){
-            nam_output.append("  " + references.names[n.ref_id]  + " " + std::to_string(n.ref_s)  + " " + std::to_string(n.query_s) + " " + std::to_string(n.ref_e - n.ref_s) + "\n");
+            nam_output.append("  " + references.names[n.ref_id]  + " " + std::to_string(n.ref_s+1)  + " " + std::to_string(n.query_s+1) + " " + std::to_string(n.ref_e - n.ref_s) + "\n");
         }
     }
 
@@ -69,7 +71,7 @@ void output_nams(std::string &nam_output, const std::vector<Nam> &nams, std::str
     nam_output.append("> " + query_name + " Reverse\n");
     for (auto n: nams ){
         if (n.is_rc){
-            nam_output.append("  " + references.names[n.ref_id]  + " " + std::to_string(n.ref_s)  + " " + std::to_string(n.query_s) + " " + std::to_string(n.ref_e - n.ref_s) + "\n");
+            nam_output.append("  " + references.names[n.ref_id]  + " " + std::to_string(n.ref_s+1)  + " " + std::to_string(n.query_s+1) + " " + std::to_string(n.ref_e - n.ref_s) + "\n");
         }
     }
 }
