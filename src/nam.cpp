@@ -127,7 +127,6 @@ std::vector<Nam> merge_hits_into_nams(
                 n.ref_prev_hit_startpos = h.ref_s;
                 n.n_hits = 1;
                 n.is_rc = h.is_rc;
-//                n.score += (float)1 / (float)h.count;
                 open_nams.push_back(n);
             }
 
@@ -137,12 +136,11 @@ std::vector<Nam> merge_hits_into_nams(
                 // Output all NAMs from open_matches to final_nams that the current hit have passed
                 for (auto &n : open_nams) {
                     if (n.query_e < h.query_s) {
-                        int n_max_span = std::max(n.query_span(), n.ref_span());
-                        int n_min_span = std::min(n.query_span(), n.ref_span());
-                        float n_score;
-                        n_score = ( 2*n_min_span -  n_max_span) > 0 ? (float) (n.n_hits * ( 2*n_min_span -  n_max_span) ) : 1;   // this is really just n_hits * ( min_span - (offset_in_span) ) );
-//                        n_score = n.n_hits * n.query_span();
-                        n.score = n_score;
+//                        int n_max_span = std::max(n.query_span(), n.ref_span());
+//                        int n_min_span = std::min(n.query_span(), n.ref_span());
+//                        double n_score;
+//                        n_score = ( 2*n_min_span -  n_max_span) > 0 ? (double) (n.n_hits * ( 2*n_min_span -  n_max_span) ) : 1;   // this is really just n_hits * ( min_span - (offset_in_span) ) );
+                        n.score = std::min(n.query_span(), n.ref_span());
                         nams.push_back(n);
                     }
                 }
@@ -157,16 +155,16 @@ std::vector<Nam> merge_hits_into_nams(
 
         // Add all current open_matches to final NAMs
         for (auto &n : open_nams) {
-            int n_max_span = std::max(n.query_span(), n.ref_span());
-            int n_min_span = std::min(n.query_span(), n.ref_span());
-            float n_score;
-            n_score = ( 2*n_min_span -  n_max_span) > 0 ? (float) (n.n_hits * ( 2*n_min_span -  n_max_span) ) : 1;   // this is really just n_hits * ( min_span - (offset_in_span) ) );
-//            n_score = n.n_hits * n.query_span();
-            n.score = n_score;
+//            int n_max_span = std::max(n.query_span(), n.ref_span());
+//            int n_min_span = std::min(n.query_span(), n.ref_span());
+//            double n_score;
+//            n_score = ( 2*n_min_span -  n_max_span) > 0 ? (double) (n.n_hits * ( 2*n_min_span -  n_max_span) ) : 1;   // this is really just n_hits * ( min_span - (offset_in_span) ) );
+//            n.score = n_score;
+            n.score = std::min(n.query_span(), n.ref_span());
             nams.push_back(n);
         }
     }
-    logger.debug() << "NAMS: " << std::to_string(std::size(nams)) << std::endl;
+//    logger.debug() << "NAMS: " << std::to_string(std::size(nams)) << std::endl;
     return nams;
 }
 
@@ -204,12 +202,12 @@ std::pair<float, std::vector<Nam>> find_nams(
             add_to_hits_per_ref(hits_per_ref, q.start, q.end, q.is_reverse, index, position, 100'000, tot_hits);
         }
     }
-    logger.debug() << "add_to_hits_per_ref DONE: " << std::to_string(hits_per_ref.size()) << std::endl;
-    logger.debug() << "add_to_hits_per_ref TOT count: " << std::to_string(tot_hits) << std::endl;
+//    logger.debug() << "add_to_hits_per_ref DONE: " << std::to_string(hits_per_ref.size()) << std::endl;
+//    logger.debug() << "add_to_hits_per_ref TOT count: " << std::to_string(tot_hits) << std::endl;
 
     float nonrepetitive_fraction = total_hits > 0 ? ((float) nr_good_hits) / ((float) total_hits) : 1.0;
     auto nams = merge_hits_into_nams(hits_per_ref, index.k(), false);
-    logger.debug() << "merge_hits_into_nams DONE: " << std::to_string(nams.size()) << std::endl;
+//    logger.debug() << "merge_hits_into_nams DONE: " << std::to_string(nams.size()) << std::endl;
 
     return make_pair(nonrepetitive_fraction, nams);
 }

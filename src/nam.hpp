@@ -16,7 +16,7 @@ struct Nam {
     int ref_prev_hit_startpos;
     int n_hits = 0;
     int ref_id;
-    float score;
+    int score;
 //    unsigned int previous_query_start;
 //    unsigned int previous_ref_start;
     bool is_rc = false;

@@ -81,6 +81,7 @@ int run_strobealign(int argc, char **argv) {
     mapping_params map_param;
     map_param.filter_cutoff = opt.filter_cutoff;
     map_param.L = opt.L;
+    map_param.sort_on_scores = opt.sort_on_scores;
 
     log_parameters(index_parameters, map_param);
     logger.debug() << "Threads: " << opt.n_threads << std::endl;

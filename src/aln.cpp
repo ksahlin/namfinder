@@ -98,7 +98,7 @@ void align_SE_read(
     // Find NAMs
     Timer nam_timer;
 
-    logger.debug() << "index_parameters.filter_cutoff: " << std::to_string(index_parameters.filter_cutoff)  << "index.filter_cutoff: " << std::to_string(index.filter_cutoff) << std::endl;
+//    logger.debug() << "index_parameters.filter_cutoff: " << std::to_string(index_parameters.filter_cutoff)  << "index.filter_cutoff: " << std::to_string(index.filter_cutoff) << std::endl;
 
     auto [nonrepetitive_fraction, nams] = find_nams(query_randstrobes, index);
     statistics.tot_find_nams += nam_timer.duration();
@@ -122,10 +122,11 @@ void align_SE_read(
 
     //Sort hits based on start choordinate on query sequence
     if (!map_param.sort_on_scores) {
+        logger.debug() << "Sorting output on scores. sort_on_scores: " << std::endl;
         std::sort(nams_cut.begin(), nams_cut.end(), compareByQueryCoord);
     }
 
-    output_nams(outstring, nams, record.name, references);
+    output_nams(outstring, nams_cut, record.name, references);
 //    output_hits_paf(outstring, nams, record.name, references, index_parameters.k,
 //                        record.seq.length());
 
