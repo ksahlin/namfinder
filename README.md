@@ -1,11 +1,14 @@
-# namfinder: A fast NAM finder based on strobemers
+# namfinder: Fast computation of shared regions between DNA and RNA sequences
 
-Namfinder is mapping tool used to find non-overlapping approximate matches (NAMs). NAMs are constructed from overlapping strobemer seeds. 
+Namfinder is a sequence (DNA/RNA) mapping tool used to find Non-overlapping Approximate Matches (NAMs).
+The output and usage mimicks that of [nucmer](https://mummer.sourceforge.net/).
+You can think of NAMs as Maximal Exact Matches (MEMs) but allowing some SNVs and smaller indels. NAMs are constructed from overlapping strobemer seeds. 
 
-Namfinder is a more optimized version of the previous proof-of-concept tool StrobeMap that was implemented for the strobemers paper.
 
 Namfinder has borrowed the whole indexing construction codebase from [strobealign](https://github.com/ksahlin/strobealign) (a short-read mapper), but is used only for finding NAM seeds. 
 Credits to @marcelm, @luispedro and @psj1997 for the optimized indexing implementation.
+Namfinder is a more optimized version of the previous proof-of-concept tool StrobeMap that was implemented for the strobemers paper.
+It has changed name not to confuse it with [strobealign](https://github.com/ksahlin/strobealign).
 
 
 ## Features
