@@ -122,7 +122,7 @@ void align_SE_read(
 
     //Sort hits based on start choordinate on query sequence
     if (!map_param.sort_on_scores) {
-        logger.debug() << "Sorting output on scores. sort_on_scores: " << std::endl;
+//        logger.debug() << "Sorting output on scores. sort_on_scores: " << std::endl;
         std::sort(nams_cut.begin(), nams_cut.end(), compareByQueryCoord);
     }
 
