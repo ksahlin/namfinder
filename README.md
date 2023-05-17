@@ -1,4 +1,4 @@
-# namfinder: Fast computation of shared regions between DNA and RNA sequences
+# namfinder: Fast computation of shared regions between sequences
 
 Namfinder is a sequence (DNA/RNA) mapping tool used to find Non-overlapping Approximate Matches (NAMs).
 The output and usage mimicks that of [nucmer](https://mummer.sourceforge.net/).
