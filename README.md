@@ -1,5 +1,7 @@
 # namfinder: Fast computation of shared regions between sequences
 
+**2023-05-19: Namfinder is not for stable use yet. The program currently contains a limiting complexity in some cases (sqared in the number of hits) for genome size comparisons. I advice not to run this software until it is fixed. This repo went public just because uLTRA long transcriptomic aligner depends on it.**
+
 Namfinder is a sequence (DNA/RNA) mapping tool used to find Non-overlapping Approximate Matches (NAMs).
 The output and usage mimicks that of [nucmer](https://mummer.sourceforge.net/).
 You can think of NAMs as Maximal Exact Matches (MEMs) but allowing some SNVs and smaller indels. NAMs are constructed from overlapping strobemer seeds. 
