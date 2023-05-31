@@ -29,7 +29,7 @@ public:
         , t_syncmer((k - s) / 2 + 1)
         , w_min(std::max(1, l))
         , w_max(std::max(1, u))
-        , max_dist(u + k+1)
+        , max_dist(255) // Maximum allowed offset to pack in 8 bits
         , filter_cutoff(filter_cutoff)
     {
         verify();
